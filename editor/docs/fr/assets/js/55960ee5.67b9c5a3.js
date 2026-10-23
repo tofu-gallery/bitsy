@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkbitsy_docs=self.webpackChunkbitsy_docs||[]).push([[5151],{350:s=>{s.exports=JSON.parse('[{"label":"stub","permalink":"/docs/fr/tags/stub","count":8},{"label":"Variables","permalink":"/docs/fr/tags/variables","count":1}]')}}]);

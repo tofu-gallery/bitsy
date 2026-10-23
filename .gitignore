@@ -1,5 +1,7 @@
 # Production docs
 /editor/docs
+# Tofu pins the complete static editor, including its offline help.
+!/editor/docs
 
 heroku-server/*
 itch-version/*

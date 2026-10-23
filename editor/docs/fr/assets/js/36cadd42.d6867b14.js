@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkbitsy_docs=self.webpackChunkbitsy_docs||[]).push([[2298],{7083:s=>{s.exports=JSON.parse('{"label":"Variables","permalink":"/docs/fr/tags/variables","allTagsPath":"/docs/fr/tags","count":1,"items":[{"id":"tools/inventory/index","title":"Inventory","description":"Description","permalink":"/docs/fr/tools/inventory/"}]}')}}]);
