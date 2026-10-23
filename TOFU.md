@@ -21,10 +21,12 @@ All editor scripts, images, icons, fonts, and help-page code are hosted with the
 
 1. Include the upstream documentation build in `editor/docs/`, with English, French, and Simplified Chinese pages. The editor opens these pages inside its About panel; the upstream source checkout omits them, producing a broken help panel until built.
 2. Add `dev/tofu-build.cjs` to reproduce the upstream icon/resource generation and documentation build without executing upstream's FTP publishing script.
-3. Copy `LICENSE.md` and `CREDITS.md` unchanged into `editor/`, so publishing only the site root still distributes the upstream license and author credits.
+3. Copy `LICENSE.md` and `CREDITS.md` unchanged into `editor/` as `LICENSE.md.txt` and `CREDITS.md.txt`, so publishing only the site root still distributes the upstream license and author credits. Tofu's Free static hosting serves `.txt` files but does not publish Markdown.
 4. Add an ignore-rule exception for the prebuilt documentation so a gallery copy needs no package install or build service.
+5. Rename the documentation's webpack runtime chunk from `runtime~main.<hash>.js` to `runtime-main.<hash>.js` in each locale (`docs/assets/js/`, `docs/fr/assets/js/`, `docs/zh-Hans/assets/js/`) and update the 141 help pages that load it. Tofu's Free static hosting refuses a whole site for one file name containing `~`; it serves names made of letters, digits, spaces, and `-_.@()`. Only the pages' `<script>` and preload tags name the chunk, and its code is unchanged. `dev/tofu-lane-names.cjs` makes this change, and `dev/tofu-build.cjs` runs it after every documentation build.
+6. Remove `icons/bitsy.hqx`, `icons/bitsy.icns`, and `image/bitsy.icns` from `editor/`. They are Mac application icon formats that nothing in the editor, engine, exporter, or help loads (the page icon is `image/cat5.png`), and Tofu's Free static hosting refuses a site containing file types it does not serve. Upstream's copies remain on `main`.
 
-The checked-in editor and engine code are unchanged. `main` mirrors upstream; adaptations are only on `tofu`. The verified release is tagged `pin/2026-10-23`.
+The checked-in editor and engine code are unchanged. `main` mirrors upstream; adaptations are only on `tofu`. The verified release is tagged `pin/2026-10-23.1`. The earlier `pin/2026-10-23` predates adaptations 5 and 6 and the `.txt` license copies, so Tofu's Free static hosting refuses it.
 
 ## Rebuilding after an upstream update
 
@@ -36,7 +38,7 @@ npm --prefix docs ci --no-audit --no-fund
 node dev/tofu-build.cjs
 ```
 
-The script runs the upstream icon generator, resource packager, and `npm --prefix docs run build`. Docusaurus builds all three documentation locales, then the upstream postprocessor makes asset paths relative. Root npm dependencies are upstream publishing/development tools; they are not needed to serve `editor/`. Build output may include upstream Browserslist freshness warnings; dependency versions are intentionally retained from the upstream lockfiles.
+The script runs the upstream icon generator, resource packager, and `npm --prefix docs run build`. Docusaurus builds all three documentation locales, then the upstream postprocessor makes asset paths relative. The script then runs `dev/tofu-lane-names.cjs` and writes the `.txt` license copies. Root npm dependencies are upstream publishing/development tools; they are not needed to serve `editor/`. Build output may include upstream Browserslist freshness warnings; dependency versions are intentionally retained from the upstream lockfiles.
 
 Review and commit the resulting files on `tofu` before updating a gallery pin. Do not run `dev/publish.js`: it is the upstream FTP release utility and is not part of this adaptation.
 
@@ -47,9 +49,11 @@ python3 -I -m http.server 48273 --bind 127.0.0.1 --directory editor
 curl --fail --silent --show-error --output /dev/null --write-out '%{http_code}\n' http://127.0.0.1:48273/
 ```
 
-Both frozen-lockfile installs and the complete build passed on Node.js 22.22.3 / npm 10.9.8. The editor and English, French, and Simplified Chinese documentation entry pages returned HTTP 200. A local HTML asset check found no missing files. Browser checks covered changing the game title, persistence after reload, entering and leaving play mode, opening contextual Room help, exporting HTML, and opening the exported game as its own local page. The exported game rendered a 512-by-512 canvas with no runtime errors or external resource requests. The editor and Room help also had no runtime errors or external resource requests.
+For the first pin, both frozen-lockfile installs and the complete build passed on Node.js 22.22.3 / npm 10.9.8. The editor and English, French, and Simplified Chinese documentation entry pages returned HTTP 200. A local HTML asset check found no missing files other than the 404 page's language-menu links described below. Browser checks covered changing the game title, persistence after reload, entering and leaving play mode, opening contextual Room help, exporting HTML, and opening the exported game as its own local page. The exported game rendered a 512-by-512 canvas with no runtime errors or external resource requests. The editor and Room help also had no runtime errors or external resource requests.
 
 The upstream HTML importer includes trailing HTML in its intermediate text result, so its raw text is not byte-identical to the original game data. Parsing both results produced identical world data; the editor and exporter were kept unchanged. The browser driver's navigation-readiness heuristic timed out for the canvas-only exported page, so the page's completed document, rendered canvas, screenshot, and error capture were checked directly. No deployment was performed by this verification.
+
+For `pin/2026-10-23.1` (adaptations 5 and 6 and the `.txt` license copies), `node dev/tofu-lane-names.cjs` was run on the committed documentation build: it renamed the three chunks and updated 141 pages, and a second run changed nothing. The full rebuild was not repeated. The `.txt` license copies are byte-identical to the root `LICENSE.md` and `CREDITS.md`. A check of all 5,405 local `src` and `href` references in the site's pages resolves every one except the 404 page's three language-menu links to `404/`, which Docusaurus does not generate; the first pin has the same three. A copy of `editor/` without the folders Tofu's import drops was served on 127.0.0.1 with Python's `http.server` handler. Its default five-connection listen queue occasionally reset one of the editor's roughly 50 parallel script loads, so the browser checks used the same handler with a deeper queue. In the browser, the editor loaded all 50 resources with no console errors, entered and left play mode, and opened the contextual Paint help in its About panel, which loaded `runtime-main.8e302f87.js` with no failed requests. `/docs/`, `/docs/fr/`, and `/docs/zh-Hans/` each loaded its own `runtime-main` chunk with HTTP 200, rendered its title, and opened its next page through the site's own navigation, with no console errors and no failed or outside requests from the site.
 
 ## Provenance and license
 
@@ -58,4 +62,4 @@ The upstream HTML importer includes trailing HTML in its intermediate text resul
 - Upstream commit: `ee412fa8c072d16af4aedd90d4ad3fb7306911b0`
 - Upstream package version: `8.14.0`
 - Fork: <https://github.com/tofu-gallery/bitsy>
-- License: MIT, with the original text in `LICENSE.md` and original author list in `CREDITS.md`. Those files and copyright notices are preserved unchanged; copies are included in the published site root.
+- License: MIT, with the original text in `LICENSE.md` and original author list in `CREDITS.md`. Those files and copyright notices are preserved unchanged; copies are included in the published site root as `LICENSE.md.txt` and `CREDITS.md.txt`.
